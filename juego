@@ -1,0 +1,326 @@
+import pygame, time, copy
+from pygame.locals import *
+
+pygame.init()
+
+pygame.display.set_caption('Juego')
+BLACK = (0,0,0)
+WHITE = (255,255,255)
+gameloop = True
+clock = pygame.time.Clock()
+RIGHT='right'
+LEFT='left'
+UP='up'
+DOWN ='down'
+SKSIZE = 50
+WINHEIGHT = 700
+WINWIDTH = 1000
+window = pygame.display.set_mode((WINWIDTH,WINHEIGHT))
+HALF_WINWIDTH = int(WINWIDTH / 2)
+HALF_WINHEIGHT = int(WINHEIGHT / 2)
+SKMAXHEALTH = 100
+
+
+#Animation images
+WALKRIGHT = []
+WALKLEFT = []
+WALKUP = []
+WALKDOWN = []
+ATTACKRIGHT = []
+ATTACKLEFT = []
+ATTACKUP = []
+ATTACKDOWN = []
+
+skCurrentImage = 1
+
+moveY = 0
+moveX = 0
+x_coord = 0
+y_coord = 0
+
+#Variables de movimiento
+moveLeft = False
+moveRight = False
+moveUp = False
+moveDown = False
+attackRight = False
+attackLeft = False
+attackUp = False
+attackDown = False
+
+ATTACKRIGHT = (pygame.image.load('AttackRight.png'))
+ATTACKLEFT = (pygame.image.load('AttackLeft.png'))
+ATTACKUP = (pygame.image.load('AttackForward.png'))
+ATTACKDOWN = (pygame.image.load('AttackBack.png'))
+
+for i in range(3):
+    WALKRIGHT.append(pygame.image.load('walkingRight%s.png' % str(i+1)))
+    WALKLEFT.append(pygame.image.load('walkingLeft%s.png' % str(i+1)))
+    WALKUP.append(pygame.image.load('walkingForward%s.png' % str(i+1)))
+    WALKDOWN.append(pygame.image.load('walkingBackward%s.png' % str(i+1)))
+
+
+walkBackward1 = (pygame.image.load('walkingBackward1.png'))
+skeleton = {'surface':pygame.transform.scale(walkBackward1,(SKSIZE,SKSIZE)),
+            'facing':RIGHT,
+            'size':SKSIZE,
+            'x':HALF_WINWIDTH,
+            'y':HALF_WINHEIGHT,
+            'health': SKMAXHEALTH}
+
+while gameloop:
+    window.fill(BLACK)
+
+#Definicion de eventos
+    for event in pygame.event.get():
+
+        if event.type == pygame.QUIT:
+            gameloop = False
+
+        elif event.type == KEYDOWN:
+            if event.key in (K_UP, K_w):
+                moveDown = False
+                moveUp = True
+            elif event.key in (K_DOWN, K_s):
+                moveUp = False
+                moveDown = True
+            elif event.key in (K_LEFT, K_a):
+                moveRight = False
+                moveLeft = True
+            elif event.key in (K_RIGHT, K_d):
+                moveLeft = False
+                moveRight = True
+            elif event.key in (K_m, K_SPACE):
+                if moveLeft:
+                    attackLeft = True
+                elif moveRight:
+                    attackRight = True
+                elif moveUp:
+                    attackUp = True
+                elif moveDown:
+                    attackDown = True
+
+        elif event.type == KEYUP:
+            if event.key in (K_LEFT, K_a):
+                moveLeft = False
+            elif event.key in (K_RIGHT, K_d):
+                moveRight = False
+            elif event.key in (K_UP, K_w):
+                moveUp = False
+            elif event.key in (K_DOWN, K_s):
+                moveDown = False
+            elif event.key in (K_m, K_SPACE):
+                attackRight = False
+                attackLeft = False
+                attackUp = False
+                attackDown = False
+
+#Animacion Skeleton
+# Primer frame
+    if skCurrentImage == 1:
+        #window.blit(DIRECTION[0], (x_coord, y_coord))
+        if moveLeft and not(moveDown or moveRight or moveUp or attackLeft):
+            window.blit(WALKLEFT[0], (x_coord, y_coord))
+            x_coord -= 3
+        if moveRight and not(moveDown or moveLeft or moveUp or attackRight):
+            window.blit(WALKRIGHT[0], (x_coord, y_coord))
+            x_coord += 3
+        if moveUp and not(moveDown or moveRight or moveLeft or attackUp):
+            window.blit(WALKUP[0], (x_coord, y_coord))
+            y_coord -= 3
+        if moveDown and not(moveRight or moveLeft or moveUp or attackDown):
+            window.blit(WALKDOWN[0], (x_coord, y_coord))
+            y_coord += 3
+        #Movimientos Diagonales
+        if moveDown and moveLeft:
+            window.blit(WALKLEFT[0], (x_coord, y_coord))
+            y_coord += 3
+            x_coord -= 3
+        if moveDown and moveRight:
+            window.blit(WALKRIGHT[0], (x_coord, y_coord))
+            y_coord += 3
+            x_coord += 3
+        if moveUp and moveLeft:
+            window.blit(WALKLEFT[0], (x_coord, y_coord))
+            y_coord -= 3
+            x_coord -= 3
+        if moveUp and moveRight:
+            window.blit(WALKRIGHT[0], (x_coord, y_coord))
+            y_coord -= 3
+            x_coord += 3
+        #Quedarse parado
+        if not(moveDown or moveRight or moveLeft or moveUp):
+            window.blit(WALKDOWN[1], (x_coord, y_coord))
+        #Atacar
+        if moveLeft and attackLeft and not(moveDown or moveRight or moveUp):
+            window.blit(ATTACKLEFT, (x_coord, y_coord))
+
+        if moveRight and attackRight and not(moveDown or moveLeft or moveUp):
+            window.blit(ATTACKRIGHT, (x_coord, y_coord))
+
+        if moveUp and attackUp and not(moveDown or moveRight or moveLeft):
+            window.blit(ATTACKUP, (x_coord, y_coord))
+
+        if moveDown and attackDown and not(moveRight or moveLeft or moveUp):
+            window.blit(ATTACKDOWN, (x_coord, y_coord))
+
+        pygame.display.update()
+
+#Segundo frame
+    if skCurrentImage == 2:
+        #window.blit(DIRECTION[1],(x_coord, y_coord))
+        if moveLeft and not(moveDown or moveRight or moveUp or attackLeft):
+            window.blit(WALKLEFT[1], (x_coord, y_coord))
+            x_coord -= 3
+        if moveRight and not(moveDown or moveLeft or moveUp or attackRight):
+            window.blit(WALKRIGHT[1], (x_coord, y_coord))
+            x_coord += 3
+        if moveUp and not(moveDown or moveRight or moveLeft or attackUp):
+            window.blit(WALKUP[1], (x_coord, y_coord))
+            y_coord -= 3
+        if moveDown and not(moveRight or moveLeft or moveUp or attackDown):
+            window.blit(WALKDOWN[1], (x_coord, y_coord))
+            y_coord += 3
+        # Movimientos Diagonales
+        if moveDown and moveLeft:
+            window.blit(WALKLEFT[1], (x_coord, y_coord))
+            y_coord += 3
+            x_coord -= 3
+        if moveDown and moveRight:
+            window.blit(WALKRIGHT[1], (x_coord, y_coord))
+            y_coord += 3
+            x_coord += 3
+        if moveUp and moveLeft:
+            window.blit(WALKLEFT[1], (x_coord, y_coord))
+            y_coord -= 3
+            x_coord -= 3
+        if moveUp and moveRight:
+            window.blit(WALKRIGHT[1], (x_coord, y_coord))
+            y_coord -= 3
+            x_coord += 3
+        #Quedarse parado
+        if not(moveDown or moveRight or moveLeft or moveUp):
+            window.blit(WALKDOWN[1], (x_coord, y_coord))
+
+        # Atacar
+        if moveLeft and attackLeft and not (moveDown or moveRight or moveUp):
+                window.blit(ATTACKLEFT, (x_coord, y_coord))
+
+        if moveRight and attackRight and not (moveDown or moveLeft or moveUp):
+                window.blit(ATTACKRIGHT, (x_coord, y_coord))
+
+        if moveUp and attackUp and not (moveDown or moveRight or moveLeft):
+                window.blit(ATTACKUP, (x_coord, y_coord))
+
+        if moveDown and attackDown and not (moveRight or moveLeft or moveUp):
+                window.blit(ATTACKDOWN, (x_coord, y_coord))
+
+        pygame.display.update()
+
+#Tercer frame
+    if skCurrentImage == 3:
+        #window.blit(DIRECTION[2],(x_coord, y_coord))
+        if moveLeft and not(moveDown or moveRight or moveUp or attackLeft):
+            window.blit(WALKLEFT[2], (x_coord, y_coord))
+            x_coord -= 3
+        if moveRight and not(moveDown or moveLeft or moveUp or attackRight):
+            window.blit(WALKRIGHT[2], (x_coord, y_coord))
+            x_coord += 3
+        if moveUp and not(moveDown or moveRight or moveLeft or attackUp):
+            window.blit(WALKUP[2], (x_coord, y_coord))
+            y_coord -= 3
+        if moveDown and not(moveRight or moveLeft or moveUp or attackDown):
+            window.blit(WALKDOWN[2], (x_coord, y_coord))
+            y_coord += 3
+        # Movimientos Diagonales
+        if moveDown and moveLeft:
+            window.blit(WALKLEFT[2], (x_coord, y_coord))
+            y_coord += 3
+            x_coord -= 3
+        if moveDown and moveRight:
+            window.blit(WALKRIGHT[2], (x_coord, y_coord))
+            y_coord += 3
+            x_coord += 3
+        if moveUp and moveLeft:
+            window.blit(WALKLEFT[2], (x_coord, y_coord))
+            y_coord -= 3
+            x_coord -= 3
+        if moveUp and moveRight:
+            window.blit(WALKRIGHT[2], (x_coord, y_coord))
+            y_coord -= 3
+            x_coord += 3
+        # Quedarse parado
+        if not (moveDown or moveRight or moveLeft or moveUp):
+            window.blit(WALKDOWN[1], (x_coord, y_coord))
+        # Atacar
+        if moveLeft and attackLeft and not (moveDown or moveRight or moveUp):
+            window.blit(ATTACKLEFT, (x_coord, y_coord))
+
+        if moveRight and attackRight and not (moveDown or moveLeft or moveUp):
+            window.blit(ATTACKRIGHT, (x_coord, y_coord))
+
+        if moveUp and attackUp and not (moveDown or moveRight or moveLeft):
+            window.blit(ATTACKUP, (x_coord, y_coord))
+
+        if moveDown and attackDown and not (moveRight or moveLeft or moveUp):
+            window.blit(ATTACKDOWN, (x_coord, y_coord))
+        pygame.display.update()
+
+#Cuarto Frame
+    if skCurrentImage == 4:
+        #window.blit(DIRECTION[1], (x_coord, y_coord))
+        skCurrentImage = 1
+        if moveLeft and not (moveDown or moveRight or moveUp or attackLeft):
+            window.blit(WALKLEFT[1], (x_coord, y_coord))
+            x_coord -= 3
+        if moveRight and not (moveDown or moveLeft or moveUp or attackRight):
+            window.blit(WALKRIGHT[1], (x_coord, y_coord))
+            x_coord += 3
+        if moveUp and not (moveDown or moveRight or moveLeft or attackUp):
+            window.blit(WALKUP[1], (x_coord, y_coord))
+            y_coord -= 3
+        if moveDown and not(moveRight or moveLeft or moveUp or attackDown):
+            window.blit(WALKDOWN[1], (x_coord, y_coord))
+            y_coord += 3
+        #Movimientos Diagonales
+        if moveDown and moveLeft:
+            window.blit(WALKLEFT[1], (x_coord, y_coord))
+            y_coord += 3
+            x_coord -= 3
+        if moveDown and moveRight:
+            window.blit(WALKRIGHT[1], (x_coord, y_coord))
+            y_coord += 3
+            x_coord += 3
+        if moveUp and moveLeft:
+            window.blit(WALKLEFT[1], (x_coord, y_coord))
+            y_coord -= 3
+            x_coord -= 3
+        if moveUp and moveRight:
+            window.blit(WALKRIGHT[1], (x_coord, y_coord))
+            y_coord -= 3
+            x_coord += 3
+        #Quedarse parado
+        if not(moveDown or moveRight or moveLeft or moveUp):
+            window.blit(WALKDOWN[1], (x_coord, y_coord))
+        # Atacar
+        if moveLeft and attackLeft and not (moveDown or moveRight or moveUp):
+            window.blit(ATTACKLEFT, (x_coord, y_coord))
+
+        if moveRight and attackRight and not (moveDown or moveLeft or moveUp):
+            window.blit(ATTACKRIGHT, (x_coord, y_coord))
+
+        if moveUp and attackUp and not (moveDown or moveRight or moveLeft):
+            window.blit(ATTACKUP, (x_coord, y_coord))
+
+        if moveDown and attackDown and not (moveRight or moveLeft or moveUp):
+            window.blit(ATTACKDOWN, (x_coord, y_coord))
+        pygame.display.update()
+    else:
+        skCurrentImage+=1
+
+
+
+
+    pygame.display.update()
+    clock.tick(10)
+
